@@ -17,7 +17,7 @@ Prerequisites
 Installation
 	1.	Clone the repository:
 
-git clone https://github.com/your-username/poker-game.git
+git clone https://github.com/diviprog/poker
 
 
 	2.	Navigate to the project directory:
