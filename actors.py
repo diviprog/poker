@@ -1,5 +1,5 @@
 class Actor:
-    def __init__(self, stack):
+    def __init__(self, stack, table):
         self.hole_cards = []
         self.stack = stack
         self.active = True
@@ -7,6 +7,7 @@ class Actor:
         self.amount_in_round = 0
         self.acted = True
         self.groups = {}
+        self.table = table
 
     def get_card(self, card): # assigns a card to the actor
         self.hole_cards.append(card)
@@ -72,11 +73,11 @@ class Actor:
         return amount
 
 class Player(Actor):
-    def __init__(self, stack):
-        super().__init__(stack)
+    def __init__(self, stack, table):
+        super().__init__(stack, table)
         self.id = "player"
 
 class Bot(Actor):
-    def __init__(self, stack):
-        super().__init__(stack)
+    def __init__(self, stack, table):
+        super().__init__(stack, table)
         self.id = "bot"

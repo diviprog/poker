@@ -18,11 +18,6 @@ class Table:
         self.variation = variation
         self.num_hole_cards, self.preflop_choice, self.discard = self.get_variation(self.variation)
 
-        self.play_round()
-        while input("Continue? (y/n) ") == "y":
-            self.round_number += 1
-            self.play_round()
-
     def get_variation(self, variation):
         return variations[variation]
 
@@ -30,7 +25,7 @@ class Table:
         self.players = len(self.actors)
         player_positions = positions[str(self.players) + 'p']
         for i in range(self.players):
-            self.actors[i].give_position(player_positions[(i + self.round_number - 1) % self.players])
+            self.actors[i].give_position(player_positions[(i - self.round_number + 1) % self.players])
 
     def initialize_player_amount_in_round(self):
         for actor in self.actors:
@@ -51,6 +46,7 @@ class Table:
         self.community_cards = []
         self.assign_positions()
         self.make_players_active()
+        self.pot = 0
         self.distribute_hole_cards()
         
         # Discard before preflop if necessary
@@ -183,20 +179,66 @@ class Table:
         return sum(actor.active for actor in self.actors)
 
     def find_winner(self, hands):
+        """
+        Find the winning hand(s) among active players.
+        
+        Args:
+            hands: List of [hole_cards, player_index] pairs
+            
+        Returns:
+            List of winning hands with their player indices
+        """
         if not hands:
             return []
-
-        winners = [hands[0]]
-
-        for i in range(1, len(hands)):
-            result = compare_hands(winners[0][0], hands[i][0], [card.show() for card in self.community_cards], self.variation)
+        
+        # Initialize winners list
+        winners = []
+        
+        # If only one player remains, they win automatically
+        if len(hands) == 1:
+            return [hands[0]]
+        
+        # Convert community cards to strings
+        community = [card.show() for card in self.community_cards]
+        
+        # First, compare player 1 vs player 2
+        if len(hands) >= 2:
+            result = compare_hands(hands[0][0], hands[1][0], community, self.variation)
             if result == 1:
-                continue
+                winners = [hands[0]]  # Player 1 wins
             elif result == 2:
-                winners = [hands[i]]
+                winners = [hands[1]]  # Player 2 wins
             else:
-                winners.append(hands[i])
-
+                winners = [hands[0], hands[1]]  # Tie
+        
+        # If there are more than 2 players, compare the current winner against each remaining player
+        for i in range(2, len(hands)):
+            # If we have multiple winners (tie), compare each winner against the new player
+            if len(winners) > 1:
+                # Compare first winner against new player
+                result = compare_hands(winners[0][0], hands[i][0], community, self.variation)
+                if result == 1:
+                    # Current winner beats new player, keep current winners
+                    continue
+                elif result == 2:
+                    # New player beats all current winners
+                    winners = [hands[i]]
+                else:
+                    # New player ties with current winners
+                    winners.append(hands[i])
+            else:
+                # Compare the single current winner against new player
+                result = compare_hands(winners[0][0], hands[i][0], community, self.variation)
+                if result == 1:
+                    # Current winner beats new player
+                    continue
+                elif result == 2:
+                    # New player beats current winner
+                    winners = [hands[i]]
+                else:
+                    # New player ties with current winner
+                    winners.append(hands[i])
+        
         return winners
     
     def return_hole_cards(self):

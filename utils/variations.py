@@ -1,4 +1,4 @@
-variations = {'tex':[2,False,False],
+variations = {'texas':[2,False,False],
               'omaha':[4,False,False],
               'regret':[6,True,True],
               'discard':[5,False,True],
