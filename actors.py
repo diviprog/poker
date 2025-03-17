@@ -8,6 +8,8 @@ class Actor:
         self.acted = True
         self.groups = {}
         self.table = table
+        self.all_in = False
+        self.total_contribution = 0
 
     def get_card(self, card): # assigns a card to the actor
         self.hole_cards.append(card)
@@ -58,7 +60,7 @@ class Actor:
         if action[0] == "F":
             return self.fold()
         elif action[0] == "B" or action[0] == "R":
-            return self.bet(int(action[2:]) - self.amount_in_round)
+            return self.bet(int(action[1:]) - self.amount_in_round)
         elif action[0] == "C":
             return self.bet(high_bet - self.amount_in_round)
         else:
@@ -69,7 +71,10 @@ class Actor:
         return 0
 
     def bet(self, amount):
+        amount = min(amount, self.stack)
         self.stack -= amount
+        if self.stack == 0:
+            self.all_in = True
         return amount
 
 class Player(Actor):
